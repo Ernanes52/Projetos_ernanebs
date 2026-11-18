@@ -1,0 +1,136 @@
+:root {
+  /* Paleta principal — fiel à identidade HS Manutenção Náutica */
+  --navy-900: #0a1f3d;
+  --navy-800: #0f2a52;
+  --navy-700: #15356b;
+  --navy-600: #1c4384;
+  --mustard-500: #f0b429;
+  --mustard-600: #d99a0e;
+  --mustard-400: #f4c860;
+
+  --bg-app: #f5f6f8;
+  --bg-card: #ffffff;
+  --border-soft: #e3e6ec;
+
+  --text-primary: #182230;
+  --text-secondary: #5b6473;
+  --text-muted: #93989f;
+
+  --success-600: #1c9c5b;
+  --success-bg: #e3f7ec;
+  --danger-600: #d8473c;
+  --danger-bg: #fbe8e6;
+  --warning-600: #e08a1e;
+  --warning-bg: #fdf0dd;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-card: 0 1px 2px rgba(10, 31, 61, 0.04), 0 4px 12px rgba(10, 31, 61, 0.06);
+  --shadow-elevated: 0 8px 24px rgba(10, 31, 61, 0.16);
+
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-display);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-soft);
+  border-radius: 8px;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* App shell — simula a tela de um celular centralizada no desktop */
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg-app);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 60px rgba(10, 31, 61, 0.08);
+}
+
+@media (min-width: 481px) {
+  body {
+    background: linear-gradient(180deg, #e9edf3 0%, #dde3ec 100%);
+    padding: 24px 0;
+  }
+}
+
+.screen-content {
+  flex: 1;
+  padding-bottom: 88px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+:focus-visible {
+  outline: 2px solid var(--mustard-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #document-preview-print, #document-preview-print * {
+    visibility: visible;
+  }
+  #document-preview-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
