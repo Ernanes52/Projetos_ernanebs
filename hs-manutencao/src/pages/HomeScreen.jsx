@@ -9,6 +9,7 @@ const MENU_ITEMS = [
   { label: 'Novo Recibo', icon: Receipt, path: '/recibo/novo' },
   { label: 'Itens Emitidos', icon: Send, path: '/itens-emitidos' },
   { label: 'Clientes', icon: Users, path: '/clientes' },
+  { label: 'Dashboard', icon: ClipboardList, path: '/dashboard' },
 ];
 
 export default function HomeScreen() {

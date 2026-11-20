@@ -19,7 +19,7 @@ const TABS = [
 
 export default function IssuedItemsScreen() {
   const navigate = useNavigate();
-  const { documents, deleteDocument, generateFromDocument, updateDocument } = useAppData();
+  const { clients, documents, deleteDocument, generateFromDocument, updateDocument } = useAppData();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState('orcamento');
@@ -28,6 +28,8 @@ export default function IssuedItemsScreen() {
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [editDialog, setEditDialog] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   const filtered = useMemo(() => {
     const now = new Date();
@@ -66,12 +68,51 @@ export default function IssuedItemsScreen() {
         updateDocument(doc.id, { status: 'aprovado' });
         showToast('Orçamento aprovado!', 'success');
         break;
+      case 'editar_cliente':
+        setEditForm({ clientId: doc.clientId || '', clientName: doc.clientName || '' });
+        setEditDialog({ type: 'client', doc });
+        break;
+      case 'editar_pgto':
+        setEditForm({ paymentStatus: doc.paymentStatus || '', total: String(doc.total ?? '') });
+        setEditDialog({ type: 'payment', doc });
+        break;
       case 'delete':
         setConfirmDeleteId(doc.id);
         break;
       default:
         showToast('Funcionalidade em desenvolvimento.', 'info');
     }
+  };
+
+  const saveEdit = () => {
+    if (!editDialog) return;
+    const { doc } = editDialog;
+
+    if (editDialog.type === 'client') {
+      const selectedClient = clients.find((client) => client.id === editForm.clientId);
+      const clientName = (selectedClient?.name || editForm.clientName || '').trim();
+      if (!clientName) {
+        showToast('Informe o nome do cliente.', 'warning');
+        return;
+      }
+      updateDocument(doc.id, {
+        clientId: selectedClient?.id || doc.clientId || null,
+        clientName,
+      });
+    } else {
+      const total = Number(String(editForm.total).replace(',', '.'));
+      if (!Number.isFinite(total) || total < 0) {
+        showToast('Informe um valor válido (maior ou igual a zero).', 'warning');
+        return;
+      }
+      updateDocument(doc.id, {
+        paymentStatus: editForm.paymentStatus || null,
+        total: Math.round(total * 100) / 100,
+      });
+    }
+
+    setEditDialog(null);
+    showToast(editDialog.type === 'client' ? 'Dados do cliente atualizados.' : 'Pagamento atualizado.', 'success');
   };
 
   const confirmDelete = () => {
@@ -251,6 +292,85 @@ export default function IssuedItemsScreen() {
             Imprimir / Salvar PDF
           </button>
         )}
+      </Modal>
+
+      <Modal
+        open={!!editDialog}
+        onClose={() => setEditDialog(null)}
+        title={editDialog?.type === 'client' ? 'Editar cliente' : 'Editar pagamento'}
+      >
+        {editDialog?.type === 'client' && (
+          <>
+            {clients.length > 0 && (
+              <label style={{ display: 'block', marginBottom: 14, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                Selecionar cliente cadastrado
+                <select
+                  value={editForm.clientId}
+                  onChange={(e) => {
+                    const client = clients.find((item) => item.id === e.target.value);
+                    setEditForm((form) => ({ ...form, clientId: e.target.value, clientName: client?.name || '' }));
+                  }}
+                  style={{ display: 'block', width: '100%', marginTop: 6, padding: '11px 12px', border: '1.5px solid var(--border-soft)', borderRadius: 'var(--radius-sm)', background: '#fff', fontSize: 14 }}
+                >
+                  <option value="">Outro cliente / digitar nome</option>
+                  {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+                </select>
+              </label>
+            )}
+            <label style={{ display: 'block', marginBottom: 16, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Nome do cliente
+              <input
+                value={editForm.clientName}
+                onChange={(e) => setEditForm((form) => ({ ...form, clientId: '', clientName: e.target.value }))}
+                placeholder="Nome do cliente"
+                required
+                style={{ display: 'block', width: '100%', marginTop: 6, padding: '11px 12px', border: '1.5px solid var(--border-soft)', borderRadius: 'var(--radius-sm)', fontSize: 14 }}
+              />
+            </label>
+          </>
+        )}
+        {editDialog?.type === 'payment' && (
+          <>
+            <label style={{ display: 'block', marginBottom: 14, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Status do pagamento
+              <select
+                value={editForm.paymentStatus}
+                onChange={(e) => setEditForm((form) => ({ ...form, paymentStatus: e.target.value }))}
+                style={{ display: 'block', width: '100%', marginTop: 6, padding: '11px 12px', border: '1.5px solid var(--border-soft)', borderRadius: 'var(--radius-sm)', background: '#fff', fontSize: 14 }}
+              >
+                <option value="">Não informado</option>
+                <option value="parcial">Parcial</option>
+                <option value="total">Total</option>
+              </select>
+            </label>
+            <label style={{ display: 'block', marginBottom: 18, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Valor do documento (R$)
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                value={editForm.total}
+                onChange={(e) => setEditForm((form) => ({ ...form, total: e.target.value }))}
+                style={{ display: 'block', width: '100%', marginTop: 6, padding: '11px 12px', border: '1.5px solid var(--border-soft)', borderRadius: 'var(--radius-sm)', fontSize: 14 }}
+              />
+            </label>
+          </>
+        )}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => setEditDialog(null)}
+            style={{ flex: 1, padding: '12px 0', borderRadius: 'var(--radius-sm)', border: '1.5px solid var(--border-soft)', background: '#fff', fontWeight: 700, color: 'var(--text-secondary)' }}
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={saveEdit}
+            style={{ flex: 1, padding: '12px 0', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--navy-800)', color: '#fff', fontWeight: 700 }}
+          >
+            Salvar
+          </button>
+        </div>
       </Modal>
 
       <Modal open={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)} title="Excluir documento">
